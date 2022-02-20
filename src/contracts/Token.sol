@@ -12,6 +12,7 @@ contract Token {
 
     // Track balances
     mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
 
     // Send tokens
 
@@ -21,14 +22,49 @@ contract Token {
     }
 
     event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(
+        address indexed _owner,
+        address indexed _spender,
+        uint256 _value
+    );
 
     function transfer(address _to, uint256 _value)
         public
         returns (bool success)
     {
-        balanceOf[msg.sender] = balanceOf[msg.sender].sub(_value);
+        require(balanceOf[msg.sender] >= _value);
+        _transfer(msg.sender, _to, _value);
+        return true;
+    }
+
+    function _transfer(
+        address _from,
+        address _to,
+        uint256 _value
+    ) internal {
+        require(_to != address(0));
+        balanceOf[_from] = balanceOf[msg.sender].sub(_value);
         balanceOf[_to] = balanceOf[_to].add(_value);
         emit Transfer(msg.sender, _to, _value);
+    }
+
+    function approve(address _spender, uint256 _value)
+        public
+        returns (bool success)
+    {
+        require(_spender != address(0));
+        allowance[msg.sender][_spender] = _value;
+        emit Approval(msg.sender, _spender, _value);
+        return true;
+    }
+
+    // Transfer from
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    ) public returns (bool success) {
+        _transfer(_from, _to, _value);
         return true;
     }
 }
